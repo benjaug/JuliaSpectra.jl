@@ -20,6 +20,8 @@ MolParams = Dict{String, Any}()
     γD = 0.0 # spin-rotation distortion
     bF = 0.0 # Fermi contact hyperfine
     c = 0.0 # dipolar hyperfine
+    qv = 0.0 # l-type doulbing
+    pv = 0.0 # l-type doubling
 
     gS = 2.0023 # spin g-factor
     gL = 1.0 # Orbital g-factor
@@ -83,7 +85,9 @@ end
 
 # Now define the molecules
 
-# CaF 
+"""
+CaF
+"""
 X = Params_Linear_2Sigma(
     B= 10303.988/sol, # Childs 1981, 10.1016/0022-2852(81)90288-5
     D = 4.969e-7, # Devlin 2015, 10.1016/j.jms.2015.07.009
@@ -115,7 +119,9 @@ B = Params_Linear_2Sigma(
 CaF_Params = Dict("X" => X, "A" => A, "B" => B)
 MolParams["CaF"] = CaF_Params
 
-# SrF 
+"""
+SrF
+"""
 X = Params_Linear_2Sigma(
     B= 7487.60/sol, # Barry thesis
     D = 0.0075/sol, # Barry thesis
@@ -147,7 +153,9 @@ B = Params_Linear_2Sigma(
 SrF_Params = Dict("X" => X, "A" => A, "B" => B)
 MolParams["SrF"] = SrF_Params
 
-# YbOH
+"""
+YbOH
+"""
 X = Params_Linear_2Sigma(
     B = 0.245116257, # Steimle 2019, 10.1103/PhysRevA.100.052509
     D = 2.029e-7, # Steimle 2019, 10.1103/PhysRevA.100.052509
@@ -171,8 +179,10 @@ A = Params_Linear_2Pi(
 YbOH_Params = Dict("X" => X, "A" => A)
 MolParams["YbOH"] = YbOH_Params
 
-# SrOH
-X = Params_Linear_2Sigma(
+"""
+SrOH
+"""
+X000 = Params_Linear_2Sigma(
     B = 0.249199814, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     D = 2.17437e-7, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     γ = 2.42748e-3, # Nguyen 2018, 10.1016/j.jms.2018.02.007
@@ -181,7 +191,56 @@ X = Params_Linear_2Sigma(
     μa = 1.9 # Steimle 1992, 10.1063/1.462007
     )
 
-A = Params_Linear_2Pi(
+X010 = Params_Linear_2Sigma(
+    T0 = 363.68900, # 10.1139/v93-211
+    B = 0.24858, # 10.1063/1.469482
+    D = 0.0, # 10.1063/1.469482
+    γ = 0.00241, # 10.1063/1.469482
+    qv = -0.00040, # 10.1063/1.469482
+    pv = -0.00003, # 10.1063/1.469482
+    bF = 1.713/sol, # fix to X(000)
+    c = 1.673/sol, #  fix to X(000)
+    μa = 1.9 # fix to X(000)
+    )
+
+X100 = Params_Linear_2Sigma(
+    T0 = 526.99100, # 10.1016/0301-0104(94)00330-D
+    B = 0.24773, # 10.1063/1.469482
+    γ = 0.00241, # 10.1063/1.469482
+    bF = 1.713/sol, # fix to X(000)
+    c = 1.673/sol, #  fix to X(000)
+    μa = 1.9 # fix to X(000)
+    )
+
+X200 = Params_Linear_2Sigma(
+    T0 = 1049.073, # 10.1016/0301-0104(94)00330-D
+    B = 0.24633, # 10.1016/0301-0104(94)00330-D
+    γ = 0.00241, # fix to X(100)
+    bF = 1.713/sol, # fix to X(000)
+    c = 1.673/sol, #  fix to X(000)
+    μa = 1.9 # fix to X(000)
+    )
+
+X0200 = Params_Linear_2Sigma(
+    T0 = 703.288, # 10.1139/v93-211
+    B = 0.24820, # 10.1063/1.469482
+    γ = 0.00239, # 10.1063/1.469482
+    bF = 1.713/sol, # fix to X(000)
+    c = 1.673/sol, #  fix to X(000)
+    μa = 1.9 # fix to X(000)
+    )
+    
+X0220 = Params_Linear_2Sigma(
+    T0 = 733.547, # 10.1139/v93-211
+    B = 0.24795, # 10.1063/1.469482
+    γ = 0.00239, # 10.1063/1.469482
+    q = -0.00038, # 10.1063/1.469482
+    bF = 1.713/sol, # fix to X(000)
+    c = 1.673/sol, #  fix to X(000)
+    μa = 1.9 # fix to X(000)
+        )
+
+A000 = Params_Linear_2Pi(
     B = 0.2537833, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     aSO = 263.58741, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     p2q = -0.143662, # Nguyen 2018, 10.1016/j.jms.2018.02.007
@@ -191,7 +250,7 @@ A = Params_Linear_2Pi(
     μa = 0.59 # Steimle 1992, 10.1063/1.462007
     )
 
-B = Params_Linear_2Sigma(
+B000 = Params_Linear_2Sigma(
     B = 0.2522066, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     γ = -0.142583, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     T0 = 16377.49826, # Nguyen 2018, 10.1016/j.jms.2018.02.007
@@ -199,10 +258,48 @@ B = Params_Linear_2Sigma(
     μa = 0.396 # Steimle 1992, 10.1063/1.462007
     )
 
-SrOH_Params = Dict("X" => X, "A" => A, "B" => B)
+B100 = Params_Linear_2Sigma(
+    B = 0.25067, # 10.1016/0022-2852(83)90336-3
+    γ = -0.14220, # 10.1016/0022-2852(83)90336-3
+    T0 = 16910.88100, # 10.1016/0022-2852(83)90336-3
+    gl = 0.306, # fix to B(000)
+    μa = 0.396 # fix to B(000)
+    )
+
+B010 = Params_Linear_2Sigma(
+    B = 0.25131, # 10.1139/v93-211
+    γ = -0.14047, # 10.1139/v93-211
+    q = -0.00036, # 10.1139/v93-211
+    T0 = 16778.341, # 10.1139/v93-211
+    gl = 0.306, # fix to B(000)
+    μa = 0.396 # fix to B(000)
+    )
+
+B0200 = Params_Linear_2Sigma(
+    B = 0.25065, # 10.1139/v93-211
+    γ = -0.14309, # 10.1139/v93-211
+    q = -0.00032, # 10.1139/v93-211
+    T0 = 17148.577, # 10.1139/v93-211
+    gl = 0.306, # fix to B(000)
+    μa = 0.396 # fix to B(000)
+    )
+
+B0220 = Params_Linear_2Sigma(
+    B = 0.25038, # 10.1139/v93-211
+    γ = -0.14019, # 10.1139/v93-211
+    q = -0.00032, # 10.1139/v93-211
+    T0 = 17181.28, # 10.1139/v93-211
+    gl = 0.306, # fix to B(000)
+    μa = 0.396 # fix to B(000)
+    )
+
+SrOH_Params = Dict("X000" => X000, "X010" => X010, "X100" => X100, "X200" => X200, "X0200" => X0200, "X0220" => X0220,
+                 "A000" => A000, "B000" => B000, "B100" => B100, "B010" => B010, "B0200" => B0200, "B0220" => B0220)
 MolParams["SrOH"] = SrOH_Params
 
-# CaOH
+"""
+CaOH
+"""
 X = Params_Linear_2Sigma(
     B = 0.334354, # Steimle 1992, 10.1063/1.462007
     γ = 34.7593/sol, # Scurlock 1993, 10.1006/jmsp.1993.1133
@@ -232,7 +329,9 @@ CaOH_Params = Dict("X" => X, "A" => A, "B" => B)
 MolParams["CaOH"] = CaOH_Params
 
 
-# CaCH3
+"""
+CaCH3
+"""
 X = Params_SymTop_2A1(
     A = 5.44831, # Marr 1996, 10.1063/1.472265
     B = 0.25238487, # Marr 1996, 10.1063/1.472265
@@ -259,7 +358,9 @@ A = Params_SymTop_2E(
 CaCH3_Params = Dict("X" => X, "A" => A)
 MolParams["CaCH3"] = CaCH3_Params
 
-# CaOCH3
+"""
+CaOCH3
+"""
 X = Params_SymTop_2A1(
     A = 5.448303, # Crozet 2002, 10.1006/jmsp.2002.8536
     B = 0.11626491, # Crozet 2002, 10.1006/jmsp.2002.8536
