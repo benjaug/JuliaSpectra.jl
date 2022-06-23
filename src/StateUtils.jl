@@ -57,17 +57,49 @@ Base.@kwdef struct VibronicManifold{T<:BasisState}
 end
 export VibronicManifold
 
-function makevibronicmanifold(basis::Vector{<:BasisState}, Hpairs)
-    prefactors = zeros(Float64, length(Hpairs))
-    Hterms = [zeros(Float64,length(basis),length(basis)) for _ = 1:length(Hpairs)]
+# function makevibronicmanifold(basis::Vector{<:BasisState}, Hpairs)
+#     prefactors = zeros(Float64, length(Hpairs))
+#     Hterms = [zeros(Float64,length(basis),length(basis)) for _ = 1:length(Hpairs)]
+#     for (i,h) in enumerate(Hpairs)
+#         prefactors[i] = h[1]
+#         Hterms[i] = build(Hamiltonian(basis=basis, H_operator=h[2]))
+#     end
+
+#     VibronicManifold(basis=basis, prefactors=prefactors, Hterms=Hterms)
+# end
+
+# These functions are meant to be used to generalize the vibronic manifolds to take in matrices rather than matrix element functions.
+function makevibronicmanifold(basis::Vector{<:BasisState}, Hpairs, fpairs=[])
+	N = length(Hpairs) + length(fpairs)
+    prefactors = ones(Float64, length(Hpairs)) #  the H prefactors will be overwritten and the f prefactor should be 1.
+    Hterms = [zeros(Float64,length(basis),length(basis)) for _ = 1:N]
     for (i,h) in enumerate(Hpairs)
         prefactors[i] = h[1]
         Hterms[i] = build(Hamiltonian(basis=basis, H_operator=h[2]))
     end
+	
+	for (i,fpair) in enumerate(fpairs)
+		for (j,state) in enumerate(basis)
+			for (k,state′) in enumerate(basis)
+				Hterms[i][j,k] = fpair[2](state,state′,fpair[1]) 
+			end
+		end
+	end
 
-    VibronicManifold(basis=basis, prefactors=prefactors, Hterms=Hterms)
+    return VibronicManifold(basis=basis, prefactors=prefactors, Hterms=Hterms)
 end
 export makevibronicmanifold
+
+# update!(vibronicmanifold, fpairs)
+# 	basis = vibronicmanifold.basis
+# 	for (i,fpair) in enumerate(fpairs)
+# 		for (j,state) in enumerate(basis)
+# 			for (k,state') in enumerate(basis)
+# 				vibronicmanifold.Hterms[i][j,k] = fpair[2](state,state',fpair[1]) 
+# 			end
+# 		end
+# 	end
+# end
 
 function makeTDMvibronicmanifolds(ground::VibronicManifold, excited::VibronicManifold)
     basis_g = ground.basis
@@ -376,4 +408,8 @@ import Base.+, Base.*, Base.^,Base.-
     (args...; kwargs...) -> c * f(args...; kwargs...)
 ^(f::Function, c::Real) = 
     (args...; kwargs...) -> f(args...; kwargs...)^c
+
+# try adding a method to multiply a tuple of constants times a function that outputs a tuple
+*(c::Tuple, f::Function) =
+    (args...; kwargs...) -> sum(c[i] * f(args...; kwargs...)[i] for i in 1:length(c))
 export +, *, ^,-
