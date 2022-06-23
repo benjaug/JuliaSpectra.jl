@@ -1,0 +1,4 @@
+name = "JuliaSpectra"
+uuid = "3ef6d832-bae6-4172-b279-153036e5bc42"
+authors = ["benjaug <augenbraun@g.harvard.edu>"]
+version = "0.1.0"
