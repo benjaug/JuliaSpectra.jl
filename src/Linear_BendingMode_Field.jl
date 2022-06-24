@@ -6,7 +6,7 @@ using InfiniteArrays
 export 
     LinearCaseA_Bend_Field, LinearCaseB_Bend_Field,
     Rotation, SpinRotation, HyperfineFermi, HyperfineIS,
-    lDoubling
+    lDoubling, TDM_E1
 
 Base.@kwdef struct LinearCaseA_Bend_Field <: AbstractCaseA #LinearBasisState
     Λ::Rational{Int64}
@@ -148,7 +148,7 @@ function Hyperfine_Dipolar_c(state::LinearCaseB_Bend_Field, state′::LinearCase
     ME2 = 0.0
     if δ(l,l′) && δ(M,M′) && δ(F,F′)
         ME1 = (-1)^(J+I+F+1+N′-l′) * sqrt(30)/2 * sqrt((2J′+1)*(2J+1)*(2N′+1)*(2N+1)) * 
-            wigner6j_(I,J′,F,J,I,1) * wigner3j_(N,2,N′,-l′,0,l′) *
+            wigner6j_(I,J′,F,J,I,1) * wigner3j_(N,2,N′,-l,0,l′) *
             wigner9j_(N′,N,2,S,S,1,J′,J,1)
     end
     if δ(N,N′) && δ(F,F′) && δ(M,M′) && δ(l,l′)
@@ -195,6 +195,23 @@ function Stark(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
     Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
     return -(-1)^(F - M) * 
         wigner3j_(F, 1, F′, -M, 0, M′) * 
+        (-1)^(J + I + F′ + 1) * sqrt( (2F + 1) * (2F′ + 1) ) *
+        wigner6j_(J, F, I, F′, J′, 1) *
+        (-1)^(N + S + J′ + 1) * sqrt( (2J + 1) * (2J′ + 1) ) *
+        wigner6j_(N, J, S, J′, N′, 1) *
+        (-1)^(N - Λ) * sqrt( (2N + 1) * (2N′ + 1) ) *
+        wigner3j_(N, 1, N′, -l, 0, l′)
+end
+
+function TDM_E1(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field, p::Int64)
+    """
+    Transition dipole moment operator (basically Stark operator).
+    Polarization has spherical component labeled by p.
+    """
+    Λ, l, N, S, J, I, F, M = unpack(state)
+    Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
+    return -1*(-1)^p*(-1)^(F - M) * 
+        wigner3j_(F, 1, F′, -M, p, M′) * 
         (-1)^(J + I + F′ + 1) * sqrt( (2F + 1) * (2F′ + 1) ) *
         wigner6j_(J, F, I, F′, J′, 1) *
         (-1)^(N + S + J′ + 1) * sqrt( (2J + 1) * (2J′ + 1) ) *

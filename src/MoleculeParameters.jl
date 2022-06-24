@@ -308,6 +308,15 @@ X = Params_Linear_2Sigma(
     μa = 1.465 # Steimle 1992, 10.1063/1.462007
     )
 
+X010 = Params_Linear_2Sigma(
+    B = 9996.751/sol, # 10.1063/1.469482
+    γ = 35.051/sol, # 10.1063/1.469482
+    qv = -21.649/sol, # 10.1063/1.469482
+    bF = 2.602/sol, # Fix to X(000)
+    c = 2.053/sol, # Fix to X(000)
+    μa = 1.465 # Fix to X(000)
+    )
+
 A = Params_Linear_2Pi(
     B = 0.341428, # Steimle 1992, 10.1063/1.462007
     aSO = 66.795, # Steimle 1992, 10.1063/1.462007
@@ -325,7 +334,7 @@ B = Params_Linear_2Sigma(
     μa = 0.744 # Steimle 1992, 10.1063/1.462007
     )
 
-CaOH_Params = Dict("X" => X, "A" => A, "B" => B)
+CaOH_Params = Dict("X" => X, "X010"=>X010, "A" => A, "B" => B)
 MolParams["CaOH"] = CaOH_Params
 
 
