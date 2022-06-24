@@ -5,14 +5,26 @@ using NamedTupleTools
 using LoopVectorization
 
 # Make some kind of structure of hold linelist information... 
-Base.@kwdef struct Line
-    frequency::Float64
+# Base.@kwdef struct Line
+#     frequency::Float64
+#     intensity::Float64
+#     groundQNs
+#     excitedQNs
+#     label
+# end
+# export Line
+
+Base.@kwdef mutable struct Transition
+    lower::Eigenstate
+    upper::Eigenstate
     intensity::Float64
-    groundQNs
-    excitedQNs
-    label
+    frequency::Float64
+    label::String
+    function Transition(lower::Eigenstate, upper::Eigenstate, intensity::Float64, frequency::Float64)
+        return new(lower, upper, intensity, frequency, "")
+    end
 end
-export Line
+export Transition
 
 # Function to make a LineList from a ground/excited state pair.
 function makeLineList(ground, excited, p=nothing; TK=10)
@@ -63,15 +75,22 @@ function makeLineList(ground, excited, p=nothing; TK=10)
 end
 
 # This version can make a linelist from a precomputed dictionary of TDM elements between basis states.
-function makeLineList(ground, excited, TDMDict::Dict, p=nothing; TK=10)
-    LineList = zeros(Float64, 0, 2)
+function makeLineList(ground, excited, TDMDict::Dict, p=nothing; TK=10, min_I = 1e-10, return_struct = false)
+    if return_struct == false
+        LineList = zeros(Float64, 0, 2)
+    else
+        LineList = Transition[]
+    end
  
     Elowest = minimum(minimum.([ground[Fg].evals for Fg in keys(ground)]))
      
     for QN_g in keys(ground)
         for QN_e = keys(excited)
-            
-            TDM_mat = TDMDict[QN_e, QN_g, p]
+            if typeof(p) <: Vector
+                TDM_mat = sum( p[i] * (-1)^(i-2) * TDMDict[QN_e, QN_g, i-2] for i in 1:3) # order basis as [sigma-, pi, sigma+]. i-2 gives [-1,0,+1] to label these.
+            else    
+                TDM_mat = TDMDict[QN_e, QN_g, p]
+            end 
             size_g_state = length(ground[QN_g].basis)
             size_e_state = length(excited[QN_e].basis)
 
@@ -88,8 +107,14 @@ function makeLineList(ground, excited, TDMDict::Dict, p=nothing; TK=10)
                     line_strength = abs2(g_vec' * TDM_mat * e_vec)
                     intensity = line_strength * BF
 
-                    if intensity > 1e-10
-                        LineList = vcat(LineList, [e_val - g_val intensity])
+                    if intensity > min_I
+                        if return_struct == false
+                            LineList = vcat(LineList, [e_val - g_val intensity])
+                        else
+                            eigl = Eigenstate(g_val, g_vec, ground[QN_g].basis)
+                            eigu = Eigenstate(e_val, e_vec, excited[QN_e].basis)
+                            push!(LineList, Transition(eigl, eigu, intensity, e_val-g_val))
+                        end
                     end
                 end
             end

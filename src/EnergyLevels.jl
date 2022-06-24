@@ -10,7 +10,7 @@ export
     subspaceinds, 
     packeigensystem, unpackeigensystem,
     Eigenstate, changebasis,
-    plotZeemanlevels
+    plotZeemanlevels, plotZeemanlevels!
 
 struct Eigenstate{T<:BasisState}
     E::Float64
@@ -191,6 +191,23 @@ end
 
 function plotZeemanlevels(eigsys; units="MHz", energy_offset=0.0, kwargs...)
     p = plot(frame=:box, grid=false; kwargs...)
+    xlabel!(p,"Magnetic quantum number, M")
+    for i in 1:length(eigsys)
+        energy = eigsys[i].E
+        M = eigsys[i].basis[argmax(abs2.(eigsys[i].coeffs))].M 
+        if units == "MHz"
+            energy = energy * sol
+            ylabel!(p,"Energy (MHz)")
+        else 
+            ylabel!(p, "Energy (cm-1)")
+        end
+        plot!(p,[M-0.35, M+0.35],[energy-energy_offset, energy-energy_offset]; kwargs...)
+    end
+    return p 
+end
+
+function plotZeemanlevels!(p,eigsys; units="MHz", energy_offset=0.0, kwargs...)
+    p = plot(p,frame=:box, grid=false; kwargs...)
     xlabel!(p,"Magnetic quantum number, M")
     for i in 1:length(eigsys)
         energy = eigsys[i].E

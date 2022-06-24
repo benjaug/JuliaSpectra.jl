@@ -312,8 +312,8 @@ X010 = Params_Linear_2Sigma(
     B = 9996.751/sol, # 10.1063/1.469482
     γ = 35.051/sol, # 10.1063/1.469482
     qv = -21.649/sol, # 10.1063/1.469482
-    bF = 2.602/sol, # Fix to X(000)
-    c = 2.053/sol, # Fix to X(000)
+    bF = 2.45/sol, # Taken from Nathaniel
+    c = 2.6/sol, # Taken from Nathaniel
     μa = 1.465 # Fix to X(000)
     )
 
