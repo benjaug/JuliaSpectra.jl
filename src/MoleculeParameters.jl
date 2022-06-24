@@ -296,7 +296,7 @@ B0220 = Params_Linear_2Sigma(
 SrOH_Params = Dict("X000" => X000, "X010" => X010, "X100" => X100, "X200" => X200, "X0200" => X0200, "X0220" => X0220,
                  "A000" => A000, "B000" => B000, "B100" => B100, "B010" => B010, "B0200" => B0200, "B0220" => B0220)
 MolParams["SrOH"] = SrOH_Params
-
+println(MolParams["SrOH"])
 """
 CaOH
 """
