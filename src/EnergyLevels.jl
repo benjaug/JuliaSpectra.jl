@@ -162,37 +162,32 @@ end
 function subspaceinds(evecs, evals, basis::Vector{<:BasisState}, conditions)
 # Return a dictionary that contains indices to the eigenvectors satisfying conditions.
 # conditions must have signature: (evecs, evals, basis).
-
     out = Dict()
-
     for i = 1:size(evecs,1)
         label = conditions(evecs[:,i,:],evals[i,:],basis)
-
         if !haskey(out, label)
             out[label] = [i]
         else
             push!(out[label], i)
         end
-
     end
-
     return out
 end
 
 function subspaceinds(eigsys, conditions) 
     # Return a dictionary that contains indices to the eigenvectors satisfying conditions.
     # conditions must have signature: (StructArray{Eigenstate})
-        out = Dict()
-        for i = 1:size(eigsys,1)
-            label = conditions(eigsys[i,:])
-            if !haskey(out, label)
-                out[label] = [i]
-            else
-                push!(out[label], i)
-            end
+    out = Dict()
+    for i = 1:size(eigsys,1)
+        label = conditions(eigsys[i,:])
+        if !haskey(out, label)
+            out[label] = [i]
+        else
+            push!(out[label], i)
         end
-        return out
     end
+    return out
+end
 
 function plotZeemanlevels(eigsys; units="MHz", energy_offset=0.0, kwargs...)
     p = plot(frame=:box, grid=false; kwargs...)

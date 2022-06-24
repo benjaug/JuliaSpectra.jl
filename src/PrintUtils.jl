@@ -63,7 +63,7 @@ function Base.show(io::IO, state::Eigenstate)
 
     printed = false
     fields = fieldnames(basis_type)[1:end-1] # Christian has [2:end-1]... why?
-    print(io,"E = "*string(round(energy,digits=6))*"\n")
+    print(io,"E = "*string(round(energy,digits=6))*"\n  ")
     for (i,coeff) in enumerate(coeffs)
         str = ""
         basis_state = basis[i]

@@ -15,16 +15,6 @@ end
 export Hamiltonian
 
 
-# # Make a "HamiltonianBlock" type
-# @with_kw mutable struct HamiltonianBlock
-#     basis::Vector{<:BasisState}
-#      H::Array{ComplexF64,2}
-#     #H::Hermitian{ComplexF64, Array{ComplexF64,2}}
-#     evals::Vector{Float64}
-#     evecs::Array{ComplexF64}
-# end
-# export HamiltonianBlock
-
 # Make a "HamiltonianBlock" type
 @with_kw mutable struct HamiltonianBlock{T<:BasisState}
     basis::Vector{T}
@@ -40,9 +30,9 @@ export HamiltonianBlock
 # Matirx element for the energy origin of a state.
 function Origin(state::BasisState, state′::BasisState)
     if unpack(state) == unpack(state′)
-        ME = 1
+        ME = 1.0
     else
-        ME = 0
+        ME = 0.0
     end
 
     return ME
@@ -70,9 +60,10 @@ export VibronicManifold
 
 # These functions are meant to be used to generalize the vibronic manifolds to take in matrices rather than matrix element functions.
 function makevibronicmanifold(basis::Vector{<:BasisState}, Hpairs, fpairs=[])
-	N = length(Hpairs) + length(fpairs)
+	NH = length(Hpairs)
+    Nf = length(fpairs)
     prefactors = ones(Float64, length(Hpairs)) #  the H prefactors will be overwritten and the f prefactor should be 1.
-    Hterms = [zeros(Float64,length(basis),length(basis)) for _ = 1:N]
+    Hterms = [zeros(Float64,length(basis),length(basis)) for _ = 1:(NH+Nf)]
     for (i,h) in enumerate(Hpairs)
         prefactors[i] = h[1]
         Hterms[i] = build(Hamiltonian(basis=basis, H_operator=h[2]))
@@ -81,7 +72,7 @@ function makevibronicmanifold(basis::Vector{<:BasisState}, Hpairs, fpairs=[])
 	for (i,fpair) in enumerate(fpairs)
 		for (j,state) in enumerate(basis)
 			for (k,state′) in enumerate(basis)
-				Hterms[i][j,k] = fpair[2](state,state′,fpair[1]) 
+				Hterms[i+NH][j,k] = fpair[2](state,state′,fpair[1]) 
 			end
 		end
 	end
@@ -122,34 +113,28 @@ function makeTDMvibronicmanifolds(ground::VibronicManifold, excited::VibronicMan
 end
 export makeTDMvibronicmanifolds
 
-function makeblockedvibronicmanifold(state::VibronicManifold)
-    
-    state_dict = Dict{Int, HamiltonianBlock}() # initialize Dict to hold output.
-
-    # "template" Hamiltonian that shows all possible couplings by ignoring prefactors.
-    # I think ths is sufficient to determine block strucutre. 
-    Htemplate = (sum(state.Hterms) .!=0) 
-
-    g = SimpleGraph(Htemplate)
-    ccs = connected_components(g)
-
-    for (i,block) in enumerate(ccs)
-        basis = state.basis[block]
-
-        Hblock = sum(state.prefactors[j] .* state.Hterms[j] for j in 1:length(state.prefactors))[block,block]
+function makeblockedvibronicmanifold(state::VibronicManifold; block_fully = true)
+    # if block_fully = false, just put together a single Hamiltonian block.
+    # if block_fully = true, block to the maximum extent using connected components.
+    if block_fully == false
+        basis = state.basis
+        Hblock = sum(state.prefactors[j] .* state.Hterms[j] for j in 1:length(state.prefactors))
         evals, evecs = eigen(Hblock)
-
-        # if hasfield(typeof(basis[1]),:M)
-        #     state_dict[basis[1].M] = HamiltonianBlock(basis, Hblock, evals, evecs)
-        # elseif hasfield(typeof(basis[1]),:F)
-        #     state_dict[basis[1].F] = HamiltonianBlock(basis, Hblock, evals, evecs)
-        # else
-        #     error("Couldn't get the block label!")
-        # end
-        state_dict[i] = HamiltonianBlock(basis, Hblock, evals, evecs)
+        return HamiltonianBlock(basis, Hblock, evals, evecs), nothing
+    elseif block_fully == true
+        state_dict = Dict{Int, HamiltonianBlock}() # initialize Dict to hold output.
+        Htemplate = (sum(state.Hterms) .!=0) # "template" Hamiltonian that shows all possible couplings by ignoring prefactors.
+        g = SimpleGraph(Htemplate)
+        ccs = connected_components(g)
+        for (i,block) in enumerate(ccs)
+            basis = state.basis[block]
+            Hblock = sum(state.prefactors[j] .* state.Hterms[j] for j in 1:length(state.prefactors))[block,block]
+            evals, evecs = eigen(Hblock)
+            #= could add function to better label the blocks here...  =#
+            state_dict[i] = HamiltonianBlock(basis, Hblock, evals, evecs)
+        end
+        return state_dict, ccs
     end
-
-    return state_dict, ccs
 end
 export makeblockedvibronicmanifold
 
