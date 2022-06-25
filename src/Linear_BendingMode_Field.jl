@@ -228,6 +228,7 @@ function parity(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
     ME = 0.0
     if l′ == -l && J′==J && N==N′ && F==F′ && M==M′
         ME = (-1)^(N-l)
+        # ME = (-1)^(J-S-l)
     end
     return ME
 

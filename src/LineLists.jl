@@ -74,6 +74,15 @@ function makeLineList(ground, excited, p=nothing; TK=10)
     return LineList
 end
 
+function label_transitions!(LineList, label_rule)
+    # LineList = Vector{Transition}
+    # label_rule = function that takes a Transition and returns a label
+    for (i,trans) in enumerate(LineList)
+        trans.label = label_rule(trans)
+    end
+end
+export label_transitions!
+
 # This version can make a linelist from a precomputed dictionary of TDM elements between basis states.
 function makeLineList(ground, excited, TDMDict::Dict, p=nothing; TK=10, min_I = 1e-10, return_struct = false)
     if return_struct == false
@@ -126,21 +135,40 @@ end
 export makeLineList
 
 # Function to plot a LineList 
-function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000)
+function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, interactive_labels = false)
     step = (fmax-fmin)/(nstep)
-
     freq = zeros(Float64,nstep)
     amp = zeros(Float64,nstep)
-    @turbo for i = 1:size(LineList,1)
-        for j = 1:nstep
-            offset = j*step
-            dif = (offset - (LineList[i,1]-fmin))^2
-            freq[j] = offset + fmin
-            amp[j] = amp[j] + (gamma/(2*3.141)) * (1/(dif + (gamma^2)/4)) * LineList[i,2]
+    if interactive_labels == false
+        @turbo for i = 1:size(LineList,1)
+            for j = 1:nstep
+                offset = j*step
+                dif = (offset - (LineList[i,1]-fmin))^2
+                freq[j] = offset + fmin
+                amp[j] = amp[j] + (gamma/(2*3.141)) * (1/(dif + (gamma^2)/4)) * LineList[i,2]
+            end
         end
+        return freq, amp
+    elseif interactive_labels == true
+        xd = Float64[]
+        yd = Float64[]
+        text = String[]    #@turbo for (i,line) = enumerate(LineList)
+        for (i,line) = enumerate(LineList)
+            for j = 1:nstep
+                offset = j*step
+                dif = (offset - (line.frequency-fmin))^2
+                freq[j] = offset + fmin
+                amp[j] = amp[j] + (gamma/(2*3.141)) * (1/(dif + (gamma^2)/4)) * line.intensity
+            end
+    
+            push!(xd,line.frequency)
+            push!(yd,line.intensity)
+            push!(text, line.label)
+        end
+        ph = plot(xd, yd, linealpha=0, xlabel="Frequency (MHz)", hover = text, frame=:box)
+        plot!(ph,freq,amp, label="Spectrum", hover = false, legend=false, xlims=(fmin,fmax))
+        return ph
     end
-
-    return freq, amp
 end
 export plotLineList
 
