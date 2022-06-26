@@ -4,15 +4,9 @@ using CompositeStructs
 using NamedTupleTools
 using LoopVectorization
 
-# Make some kind of structure of hold linelist information... 
-# Base.@kwdef struct Line
-#     frequency::Float64
-#     intensity::Float64
-#     groundQNs
-#     excitedQNs
-#     label
-# end
-# export Line
+export 
+    Transition, makeLineList, plotLineList, makeTransitionTable,
+    filter_transitions, label_transitions!
 
 Base.@kwdef mutable struct Transition
     lower::Eigenstate
@@ -24,7 +18,6 @@ Base.@kwdef mutable struct Transition
         return new(lower, upper, intensity, frequency, "")
     end
 end
-export Transition
 
 # Function to make a LineList from a ground/excited state pair.
 function makeLineList(ground, excited, p=nothing; TK=10, min_I = 1e-10)
@@ -146,7 +139,7 @@ function makeLineList(ground, excited, TDMDict::Dict, p=nothing; TK=10, min_I = 
                     e_vec = excited[QN_e].evecs[:,n]
                     e_val = excited[QN_e].evals[n]
 
-                    BF = exp(-(g_val - Elowest)/(TK) * 0.695) # just set temperaature to 10 K and convert to cm-1. Eventually make this a parameter.
+                    BF = exp(-(g_val - Elowest)/(TK) * 0.695) # 0.695 converts K to cm-1. 
 
                     # line_strength = abs(g_vec' * TDM_mat * e_vec)^2
                     line_strength = abs2(g_vec' * TDM_mat * e_vec)
@@ -161,10 +154,27 @@ function makeLineList(ground, excited, TDMDict::Dict, p=nothing; TK=10, min_I = 
             end
         end
     end
-
     return LineList
 end
-export makeLineList
+
+function filter_transitions(LineList, filter_rule::Function)
+    LineList_filtered = Transition[]
+    for (_,line) in enumerate(LineList)
+        res = filter_rule(line)
+        if res == true 
+            push!(LineList_filtered, line)
+        end
+    end
+    return LineList_filtered
+end
+
+function label_transitions!(LineList, label_rule::Function)
+    # LineList = Vector{Transition}
+    # label_rule = function that takes a Transition and returns a label
+    for (_,trans) in enumerate(LineList)
+        trans.label = label_rule(trans)
+    end
+end
 
 # # Function to plot a LineList 
 # function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, interactive_labels = false)
@@ -210,7 +220,7 @@ function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, make_p
     xd = Float64[]
     yd = Float64[]
     text = String[]    
-    for (i,line) = enumerate(LineList)
+    for (_,line) = enumerate(LineList)
         @turbo for j = 1:nstep
             offset = j*step
             dif = (offset - (line.frequency-fmin))^2
@@ -219,7 +229,7 @@ function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, make_p
         end
         push!(xd,line.frequency)
         push!(yd,line.intensity*(4/(gamma*2*3.141)))
-        push!(text, line.label)
+        push!(text, string(round(line.frequency,digits=3),"\n",line.label))
     end
     if make_plot == false
         return freq, amp
@@ -229,16 +239,9 @@ function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, make_p
         return ph
     end
 end
-export plotLineList
 
-function label_transitions!(LineList, label_rule)
-    # LineList = Vector{Transition}
-    # label_rule = function that takes a Transition and returns a label
-    for (i,trans) in enumerate(LineList)
-        trans.label = label_rule(trans)
-    end
-end
-export label_transitions!
+
+
 
 
 # Function to make a LineList from a ground/excited state pair.
@@ -265,4 +268,3 @@ function makeTransitionTable(ground, excited, p=nothing)
 
     return TDM_mat
 end
-export makeTransitionTable
