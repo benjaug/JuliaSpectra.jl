@@ -4,6 +4,7 @@ using CompositeStructs
 using NamedTupleTools
 using LoopVectorization
 using PrettyTables
+using Plots
 
 export 
     Transition, makeLineList, plotLineList, makeTransitionTable,
@@ -215,13 +216,15 @@ end
 #     end
 # end
 # Function to plot a LineList 
-function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, make_plot = false)
+function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=10_000, make_plot = false, kwargs...)
     step = (fmax-fmin)/(nstep)
     freq = zeros(Float64,nstep)
     amp = zeros(Float64,nstep)
     xd = Float64[]
     yd = Float64[]
-    text = String[]    
+    text = String[]   
+    # Loop through frequency array and make the Lorentzian peaks at each position. 
+    # Add all possible transitions together.  
     for (_,line) = enumerate(LineList)
         @turbo for j = 1:nstep
             offset = j*step
@@ -229,18 +232,26 @@ function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, make_p
             freq[j] = offset + fmin
             amp[j] = amp[j] + (gamma/(2*3.141)) * (1/(dif + (gamma^2)/4)) * line.intensity
         end
+    end
+    # now make the list of labels and positions
+    for (_,line) = enumerate(LineList)
         push!(xd,line.frequency)
-        push!(yd,line.intensity*(4/(gamma*2*3.141)))
+        ind = findnearest(freq, line.frequency)
+        push!(yd, amp[ind])
         push!(text, string(round(line.frequency,digits=3),"\n",line.label))
     end
+    # different plot output options.
     if make_plot == false
         return freq, amp
     elseif make_plot == true
-        ph = plot(xd, yd, linealpha=0, xlabel="Frequency (MHz)", hover = text, hovermode="x", frame=:box)
-        plot!(ph,freq,amp, label="Spectrum", hover = false, legend=false, xlims=(fmin,fmax))
+        ph = Plots.plot(xd, yd, linealpha=0, hover = text, frame=:box)
+        Plots.plot!(ph, freq,amp; hover=false, kwargs...)
         return ph
     end
 end
+# function to find nearest point in array
+#useful for labeling the spectrum by the peak that corresponds to the transition underlying it.
+findnearest(A::AbstractArray,t) = findmin(abs.(A .- t))[2]
 
 # Function to make a LineList from a ground/excited state pair.
 function makeTransitionTable(ground, excited, p=nothing)

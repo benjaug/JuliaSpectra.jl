@@ -221,7 +221,7 @@ function TDM_E1(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field,
 end
 
 function parity(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
-    # Not 100% sure this is right, but I think it is.... See Hirota 2.4.23 for a case (a) version.
+    # See Hirota 2.4.23 for a case (a) version.
     Λ, l, N, S, J, I, F, M = unpack(state)
     Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
 
