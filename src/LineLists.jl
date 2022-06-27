@@ -3,10 +3,12 @@ using LinearAlgebra
 using CompositeStructs
 using NamedTupleTools
 using LoopVectorization
+using PrettyTables
 
 export 
     Transition, makeLineList, plotLineList, makeTransitionTable,
-    filter_transitions, label_transitions!
+    filter_transitions, label_transitions!,
+    LineList_tabular
 
 Base.@kwdef mutable struct Transition
     lower::Eigenstate
@@ -234,15 +236,11 @@ function plotLineList(LineList, fmin, fmax; gamma = 0.001, nstep=100_000, make_p
     if make_plot == false
         return freq, amp
     elseif make_plot == true
-        ph = plot(xd, yd, linealpha=0, xlabel="Frequency (MHz)", hover = text, frame=:box)
+        ph = plot(xd, yd, linealpha=0, xlabel="Frequency (MHz)", hover = text, hovermode="x", frame=:box)
         plot!(ph,freq,amp, label="Spectrum", hover = false, legend=false, xlims=(fmin,fmax))
         return ph
     end
 end
-
-
-
-
 
 # Function to make a LineList from a ground/excited state pair.
 function makeTransitionTable(ground, excited, p=nothing)
@@ -267,4 +265,14 @@ function makeTransitionTable(ground, excited, p=nothing)
     end
 
     return TDM_mat
+end
+
+# Output a nicely formatted table generated from the linelist. 
+function LineList_tabular(LineList::Vector{Transition}; offset = 0.0, kwargs...)
+    sa = StructArray(LineList)
+    inds = sortperm(sa.frequency)
+    header = (["Transition","Frequency","Intensity"],[" "," - $(offset) (MHz)","(arb.)"])
+    pt = pretty_table(hcat(sa[inds].label, (sa[inds].frequency .- offset), sa[inds].intensity); header=header, formatters = ft_round([1,3],[2,3]),
+                alignment = :c)
+    return pt
 end

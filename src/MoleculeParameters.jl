@@ -10,7 +10,7 @@ const sol = 29979.2458 # converts cm-1 to MHz.
 # Start a dictionary to hold all molecule choices.
 MolParams = Dict{String, Any}()
 
-""" Define custom types to hold the parameters. """ 
+### Define custom types to hold the parameters. ###
 
 @with_kw struct Params_Linear_2Sigma
     T0 = 0.0 # origin
@@ -85,9 +85,9 @@ end
 
 # Now define the molecules
 
-"""
-CaF
-"""
+###
+#CaF
+###
 X = Params_Linear_2Sigma(
     B= 10303.988/sol, # Childs 1981, 10.1016/0022-2852(81)90288-5
     D = 4.969e-7, # Devlin 2015, 10.1016/j.jms.2015.07.009
@@ -119,9 +119,9 @@ B = Params_Linear_2Sigma(
 CaF_Params = Dict("X" => X, "A" => A, "B" => B)
 MolParams["CaF"] = CaF_Params
 
-"""
-SrF
-"""
+###
+#SrF
+###
 X = Params_Linear_2Sigma(
     B= 7487.60/sol, # Barry thesis
     D = 0.0075/sol, # Barry thesis
@@ -153,9 +153,9 @@ B = Params_Linear_2Sigma(
 SrF_Params = Dict("X" => X, "A" => A, "B" => B)
 MolParams["SrF"] = SrF_Params
 
-"""
-YbOH
-"""
+###
+#YbOH
+###
 X = Params_Linear_2Sigma(
     B = 0.245116257, # Steimle 2019, 10.1103/PhysRevA.100.052509
     D = 2.029e-7, # Steimle 2019, 10.1103/PhysRevA.100.052509
@@ -179,9 +179,9 @@ A = Params_Linear_2Pi(
 YbOH_Params = Dict("X" => X, "A" => A)
 MolParams["YbOH"] = YbOH_Params
 
-"""
-SrOH
-"""
+###
+#SrOH
+###
 X000 = Params_Linear_2Sigma(
     B = 0.249199814, # Nguyen 2018, 10.1016/j.jms.2018.02.007
     D = 2.17437e-7, # Nguyen 2018, 10.1016/j.jms.2018.02.007
@@ -297,9 +297,9 @@ SrOH_Params = Dict("X000" => X000, "X010" => X010, "X100" => X100, "X200" => X20
                  "A000" => A000, "B000" => B000, "B100" => B100, "B010" => B010, "B0200" => B0200, "B0220" => B0220)
 MolParams["SrOH"] = SrOH_Params
 
-"""
-CaOH
-"""
+###
+#CaOH
+###
 X = Params_Linear_2Sigma(
     B = 0.334354, # Steimle 1992, 10.1063/1.462007
     γ = 34.7593/sol, # Scurlock 1993, 10.1006/jmsp.1993.1133
@@ -338,9 +338,9 @@ CaOH_Params = Dict("X" => X, "X010"=>X010, "A" => A, "B" => B)
 MolParams["CaOH"] = CaOH_Params
 
 
-"""
-CaCH3
-"""
+###
+#CaCH3
+###
 X = Params_SymTop_2A1(
     A = 5.44831, # Marr 1996, 10.1063/1.472265
     B = 0.25238487, # Marr 1996, 10.1063/1.472265
@@ -367,9 +367,9 @@ A = Params_SymTop_2E(
 CaCH3_Params = Dict("X" => X, "A" => A)
 MolParams["CaCH3"] = CaCH3_Params
 
-"""
-CaOCH3
-"""
+###
+#CaOCH3
+###
 X = Params_SymTop_2A1(
     A = 5.448303, # Crozet 2002, 10.1006/jmsp.2002.8536
     B = 0.11626491, # Crozet 2002, 10.1006/jmsp.2002.8536
