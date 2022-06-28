@@ -6,7 +6,7 @@ using InfiniteArrays
 export 
     LinearCaseA_Bend_Field, LinearCaseB_Bend_Field,
     Rotation, SpinRotation, HyperfineFermi, HyperfineIS,
-    lDoubling, TDM_E1
+    lDoubling, TDM_E1, lDoublingST
 
 Base.@kwdef struct LinearCaseA_Bend_Field <: AbstractCaseA #LinearBasisState
     Λ::Rational{Int64}
@@ -95,7 +95,6 @@ function Rotation(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Fiel
 end
 
 
-
 function SpinRotation(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
     # See Hirota, eq. (2.3.35). There's a simpler form if Λ=0, but this will reduce to it when appropriate.
     Λ, l, N, S, J, I, F, M = unpack(state)
@@ -117,6 +116,27 @@ function SpinRotation(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_
         )
 
     return  ME * δ(J, J′) * δ(F, F′) * δ(M, M′) * δ(S,S′) * δ(I,I′)
+end
+
+function SpinRotation(state::LinearCaseA_Bend_Field, state′::LinearCaseA_Bend_Field)
+
+    Λ, l, S, Σ, J, Ω, I, F, M = unpack(state)
+    Λ′, l′, S′, Σ′, J′, Ω′, I′, F′, M′ = unpack(state′)
+
+    ME = 0.0
+    if δ(l,l′) && δ(J,J′) && δ(F,F′) && δ(M,M′)
+        if δ(Σ,Σ′)
+            ME += Σ^2 - S*(S+1)
+        end
+        if δ(Σ,Σ′-1)
+            ME += 1/2*sqrt(J*(J+1)-(l+Σ)*(l+Σ+1))*sqrt(S*(S+1)-Σ*(Σ+1))
+        end
+        if δ(Σ,Σ′+1)
+            ME += 1/2*sqrt(J*(J+1)-(l+Σ)*(l+Σ-1)) * sqrt(S*(S+1)-Σ*(Σ-1))
+        end
+    end
+
+    return  ME
 end
 
 function HyperfineFermi(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
@@ -158,19 +178,47 @@ function Hyperfine_Dipolar_c(state::LinearCaseB_Bend_Field, state′::LinearCase
     return ME1+ME2
 end
 
-function lDoubling(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
-    """
-    Hyperfine IzSz - (I.S)/3 term. Note this can be defined differently in different papers,
-    so check that the right linear combination of constants is being used.
-    """
+# function lDoubling(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
 
+#     Λ, l, N, S, J, I, F, M = unpack(state)
+#     Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
+
+#     ME = 0.0
+#     if δ(N,N′) && δ(M,M′) && δ(J,J′) && δ(F,F′)
+#         Δl = l-l′
+#         ME = 0.5*N*(N+1) * ( δ(Δl,-2)*(-1)^(-abs(l)) + δ(Δl,2)*(-1)^(abs(l)) )
+#     end
+#     return ME
+# end
+
+function lDoubling(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
+    # Spherical tensor form of H_ld = sum(q) q_v T^2_{2q}(N,N). Use B+C 8.402. 
+    # This is written out in Nathaniel's notes. 
     Λ, l, N, S, J, I, F, M = unpack(state)
     Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
+    ME = 0.0
+    if δ(N,N′) && δ(F,F′) && δ(M,M′) && δ(Λ,Λ′) && δ(J,J′)
+        ME = sum(
+            δ(l,l′+q*2) * (-1)^(N-l) * wigner3j_(N,2,N,-l,2*q,l′) * 1/(2*sqrt(6)) * sqrt((2N+3)*(2N+2)*(2N+1)*2N*(2N-1))
+            for q in [-1,1]
+        )
+    end
+    return ME
+end
+
+function lDoubling(state::LinearCaseA_Bend_Field, state′::LinearCaseA_Bend_Field)
+
+    Λ, l, S, Σ, J, Ω, I, F, M = unpack(state)
+    Λ′, l′, S′, Σ′, J′, Ω′, I′, F′, M′ = unpack(state′)
 
     ME = 0.0
-    if δ(N,N′) && δ(M,M′) && δ(J,J′) && δ(F,F′)
-        Δl = l-l′
-        ME = 0.5*N*(N+1) * ( δ(Δl,-2)*(-1)^(-abs(l)) + δ(Δl,2)*(-1)^(abs(l)) )
+    if δ(F,F′) && δ(J,J′) && δ(M,M′)
+        ME = sum(
+            δ(l,l′-2*q) * (δ(Σ,Σ′) * (1/(2*sqrt(6)))*(-1)^(J-l-Σ) * wigner3j_(J,2,J,-l-Σ,-2*q,l′+Σ′) *
+                sqrt((2*J-1)*(2J)*(2J+1)*(2J+2)*(2J+3)) + 2*(-1)^(J-l-Σ+S-Σ) * wigner3j_(J,1,J,-l-Σ,-q,l′+Σ′) * wigner3j_(S,1,S,-Σ,q,Σ′) *
+                sqrt(J*(J+1)*(2J+1)*S*(S+1)*(2S+1)))
+            for q in [-1,1]
+        )
     end
     return ME
 end
@@ -187,6 +235,19 @@ function Zeeman(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
         sqrt( (2J + 1) * (2J′ + 1) * S * (S + 1) * (2S + 1) ) *
         wigner6j_(S, J′, N, J, S, 1) * 
         δ(Λ, Λ′) * δ(N, N′) * δ(M, M′) * δ(l,l′)
+end
+
+function Zeeman(state::LinearCaseA_Bend_Field, state′::LinearCaseA_Bend_Field)
+    # JUST MADE UP A SPLITTING IN M HERE
+    Λ, l, S, Σ, J, Ω, I, F, M = unpack(state)
+    Λ′, l′, S′, Σ′, J′, Ω′, I′, F′, M′ = unpack(state′)
+
+    ME = 0.0
+    if δ(l,l′) && δ(J,J′) && δ(Σ,Σ′) && δ(F,F′) && δ(M,M′) && δ(Λ,Λ′)
+        ME = M
+    end
+
+    return ME
 end
 
 function Stark(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
@@ -224,12 +285,28 @@ function parity(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
     # See Hirota 2.4.23 for a case (a) version.
     Λ, l, N, S, J, I, F, M = unpack(state)
     Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
-
     ME = 0.0
     if l′ == -l && J′==J && N==N′ && F==F′ && M==M′
         ME = (-1)^(N-l)
-        # ME = (-1)^(J-S-l)
     end
     return ME
-
 end
+
+function parity(state::LinearCaseA_Bend_Field, state′::LinearCaseA_Bend_Field)
+    # See Hirota 2.4.23 for a case (a) version.
+    Λ, l, S, Σ, J, Ω, I, F, M = unpack(state)
+    Λ′, l′, S′, Σ′, J′, Ω′, I′, F′, M′ = unpack(state′)
+    ME = 0.0
+    if l′ == -l && J′==J && Σ==-Σ′ && F==F′ && M==M′ && Λ==-Λ′
+        ME = (-1)^(J-S-l)
+    end
+    return ME
+end
+
+function convertbasis(state::LinearCaseB_Bend_Field, state′::LinearCaseA_Bend_Field)
+    # Hirota 2.3.3
+    Λ, l, N, S, J, I, F, M = unpack(state)
+    Λ′, l′, S′, Σ′, J′, Ω′, I′, F′, M′ = unpack(state′)
+    return (-1)^(-J′+l′+Σ′+2S) * sqrt(2N + 1) * wigner3j_(J′, N, S, l′+Σ′, -l, -Σ′) * δ(S,S′) * δ(I,I′) * δ(M,M′) * δ(F,F′) * δ(J,J′) * δ(l,l′)
+end
+convertbasis(state::LinearCaseA_Bend_Field, state′::LinearCaseB_Bend_Field) = convertbasis(state′, state)

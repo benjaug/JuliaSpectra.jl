@@ -9,6 +9,8 @@ const sol = 29979.2458 # converts cm-1 to MHz.
 
 # Start a dictionary to hold all molecule choices.
 MolParams = Dict{String, Any}()
+# Note that the qv l-doubling constants are chosen to have a sign consistent with the phase conventions of Hirota Eq. 2.4.23, 
+# which e.g. for CaOH requires a positive (rather than negative) qv value. 
 
 ### Define custom types to hold the parameters. ###
 
@@ -196,7 +198,7 @@ X010 = Params_Linear_2Sigma(
     B = 0.24858, # 10.1063/1.469482
     D = 0.0, # 10.1063/1.469482
     γ = 0.00241, # 10.1063/1.469482
-    qv = -0.00040, # 10.1063/1.469482
+    qv = 0.00040, # 10.1063/1.469482
     pv = -0.00003, # 10.1063/1.469482
     bF = 1.713/sol, # fix to X(000)
     c = 1.673/sol, #  fix to X(000)
@@ -234,7 +236,7 @@ X0220 = Params_Linear_2Sigma(
     T0 = 733.547, # 10.1139/v93-211
     B = 0.24795, # 10.1063/1.469482
     γ = 0.00239, # 10.1063/1.469482
-    qv = -0.00038, # 10.1063/1.469482
+    qv = 0.00038, # 10.1063/1.469482
     bF = 1.713/sol, # fix to X(000)
     c = 1.673/sol, #  fix to X(000)
     μa = 1.9 # fix to X(000)
@@ -269,7 +271,7 @@ B100 = Params_Linear_2Sigma(
 B010 = Params_Linear_2Sigma(
     B = 0.25131, # 10.1139/v93-211
     γ = -0.14047, # 10.1139/v93-211
-    qv = -0.00036, # 10.1139/v93-211
+    qv =  0.00036, # 10.1139/v93-211
     T0 = 16778.341, # 10.1139/v93-211
     gl = 0.306, # fix to B(000)
     μa = 0.396 # fix to B(000)
@@ -278,7 +280,7 @@ B010 = Params_Linear_2Sigma(
 B0200 = Params_Linear_2Sigma(
     B = 0.25065, # 10.1139/v93-211
     γ = -0.14309, # 10.1139/v93-211
-    qv = -0.00032, # 10.1139/v93-211
+    qv = 0.00032, # 10.1139/v93-211
     T0 = 17148.577, # 10.1139/v93-211
     gl = 0.306, # fix to B(000)
     μa = 0.396 # fix to B(000)
@@ -311,7 +313,7 @@ X = Params_Linear_2Sigma(
 X010 = Params_Linear_2Sigma(
     B = 9996.751/sol, # 10.1063/1.469482
     γ = 35.051/sol, # 10.1063/1.469482
-    qv = -21.649/sol, # 10.1063/1.469482
+    qv = 21.649/sol, # 10.1063/1.469482 # NOTE!!!! Set this to be positive rather than negative due to phase convention in l-doubling Hamiltonian.
     bF = 2.45/sol, # Taken from Nathaniel
     c = 2.6/sol, # Taken from Nathaniel
     μa = 1.465 # Fix to X(000)
