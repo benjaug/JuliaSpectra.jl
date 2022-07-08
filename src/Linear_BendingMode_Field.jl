@@ -192,14 +192,15 @@ end
 # end
 
 function lDoubling(state::LinearCaseB_Bend_Field, state′::LinearCaseB_Bend_Field)
-    # Spherical tensor form of H_ld = sum(q) q_v T^2_{2q}(N,N). Use B+C 8.402. 
-    # This is written out in Nathaniel's notes. 
+    # Spherical tensor form of H_ld = sum(q) -q_v T^2_{2q}(N,N). Use B+C 8.402. 
+    # Note the phase factor -(-1)^(N-l). The "-" out front is due to the <l|e^{2iphi}|l'>=+1 phase choice
+    # and the factor that the Hamiltonian is -qv*(N_+2 + N_-^2)
     Λ, l, N, S, J, I, F, M = unpack(state)
     Λ′, l′, N′, S′, J′, I′, F′, M′ = unpack(state′)
     ME = 0.0
     if δ(N,N′) && δ(F,F′) && δ(M,M′) && δ(Λ,Λ′) && δ(J,J′)
         ME = sum(
-            δ(l,l′+q*2) * (-1)^(N-l) * wigner3j_(N,2,N,-l,2*q,l′) * 1/(2*sqrt(6)) * sqrt((2N+3)*(2N+2)*(2N+1)*2N*(2N-1))
+            δ(l,l′+q*2) * -(-1)^(N-l) * wigner3j_(N,2,N,-l,2*q,l′) * 1/(2*sqrt(6)) * sqrt((2N+3)*(2N+2)*(2N+1)*2N*(2N-1))
             for q in [-1,1]
         )
     end
@@ -214,7 +215,7 @@ function lDoubling(state::LinearCaseA_Bend_Field, state′::LinearCaseA_Bend_Fie
     ME = 0.0
     if δ(F,F′) && δ(J,J′) && δ(M,M′)
         ME = sum(
-            δ(l,l′-2*q) * (δ(Σ,Σ′) * (1/(2*sqrt(6)))*(-1)^(J-l-Σ) * wigner3j_(J,2,J,-l-Σ,-2*q,l′+Σ′) *
+            -δ(l,l′-2*q) * (δ(Σ,Σ′) * (1/(2*sqrt(6)))*(-1)^(J-l-Σ) * wigner3j_(J,2,J,-l-Σ,-2*q,l′+Σ′) *
                 sqrt((2*J-1)*(2J)*(2J+1)*(2J+2)*(2J+3)) + 2*(-1)^(J-l-Σ+S-Σ) * wigner3j_(J,1,J,-l-Σ,-q,l′+Σ′) * wigner3j_(S,1,S,-Σ,q,Σ′) *
                 sqrt(J*(J+1)*(2J+1)*S*(S+1)*(2S+1)))
             for q in [-1,1]
